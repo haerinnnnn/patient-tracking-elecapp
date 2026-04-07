@@ -6,34 +6,48 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background-color: #f0f4f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; overflow: hidden; margin: 0; animation: fadeInPage 0.6s ease-out forwards; opacity: 0; }
-        /* Hiệu ứng Fade In cho trang */
+        body { 
+            background-color: #f0f4f9; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            height: 100vh; 
+            overflow: hidden; 
+            margin: 0; 
+            animation: fadeInPage 0.6s ease-out forwards;
+            opacity: 0;
+        }
         @keyframes fadeInPage {
             0% { opacity: 0; transform: translateY(10px); }
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* Layout Layout 2 cột */
         .dashboard-container { display: flex; height: 100vh; }
         
-        /* Sidebar Danh sách bệnh nhân */
-        .sidebar { width: 320px; background: white; border-right: 1px solid #dadce0; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid #dadce0; }
-        .patient-list { overflow-y: auto; flex-grow: 1; padding: 10px; }
+        .sidebar { width: 340px; background: white; border-right: 1px solid #dadce0; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px 20px 15px 20px; border-bottom: 1px solid #dadce0; }
         
-        .patient-tab { padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; }
+        .search-box { position: relative; margin: 0 20px 15px 20px; }
+        .search-box input { padding-left: 35px; border-radius: 8px; border: 1px solid #dadce0; font-size: 0.9rem; }
+        .search-box input:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
+        .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #5f6368; }
+
+        .patient-list { overflow-y: auto; flex-grow: 1; padding: 10px 20px; }
+        
+        .patient-tab { position: relative; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; border: 1px solid transparent; }
         .patient-tab:hover { background: #f8f9fa; }
-        .patient-tab.active { background: #e8f0fe; border-left: 4px solid #1a73e8; }
+        .patient-tab.active { background: #e8f0fe; border-color: #1a73e8; }
+        
+        /* Chấm trạng thái cảnh báo trên danh sách */
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); }
+        .status-dot.danger { background-color: #d93025; box-shadow: 0 0 5px rgba(217, 48, 37, 0.5); }
+        .status-dot.safe { background-color: #137333; }
+        
         .patient-tab .p-icon { width: 40px; height: 40px; border-radius: 50%; background: #1a73e8; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; }
         
-        /* Main Content */
         .main-content { flex-grow: 1; overflow-y: auto; padding: 30px; background-color: #f0f4f9; display: flex; flex-direction: column;}
         .card-custom { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); margin-bottom: 24px; border: 1px solid #eef0f2; }
         
-        /* Highlight Stats */
-        .stat-box { text-align: center; padding: 15px; border-radius: 8px; background: #f8f9fa; border: 1px solid #eaebed;}
-        .stat-val { font-size: 2.2rem; font-weight: bold; margin: 10px 0; }
         .stat-label { font-size: 0.9rem; color: #5f6368; text-transform: uppercase; letter-spacing: 1px;}
+        .stat-val { font-size: 2.2rem; font-weight: bold; margin: 10px 0; }
         
         .danger-text { color: #d93025; }
         .primary-text { color: #1a73e8; }
@@ -47,24 +61,33 @@
     <div class="dashboard-container">
         <div class="sidebar">
             <div class="sidebar-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold">Danh sách Bệnh nhân</h5>
-                <button class="btn btn-sm btn-outline-danger" onclick="logout()">Thoát</button>
+                <h5 class="mb-0 fw-bold">Bệnh nhân</h5>
+                <div>
+                    <button class="btn btn-sm btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addPatientModal">+ Thêm</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="logout()">Thoát</button>
+                </div>
             </div>
+            
+            <div class="search-box mt-3">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" class="form-control" placeholder="Tìm theo tên hoặc ID..." oninput="filterPatients()">
+            </div>
+
             <div class="patient-list" id="sidebarList">
-                <p class="text-center text-muted mt-3">Đang tải...</p>
+                <p class="text-center text-muted mt-3">Đang tải và phân tích dữ liệu...</p>
             </div>
         </div>
 
         <div class="main-content">
             <div id="empty-state">
                 <h3>👈 Chọn một bệnh nhân để xem chi tiết</h3>
-                <p>Dữ liệu sẽ được cập nhật trực tiếp từ hệ thống IoT.</p>
+                <p>Danh sách đã được tự động ưu tiên các bệnh nhân có chỉ số huyết áp cao.</p>
             </div>
 
             <div id="patient-detail-view" style="display: none;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="fw-bold" id="detail-name">Tên Bệnh Nhân</h3>
-                    <span class="badge bg-primary px-3 py-2" id="detail-id">ID</span>
+                    <h3 class="fw-bold" id="detail-name">--</h3>
+                    <span class="badge bg-primary px-3 py-2" id="detail-id">--</span>
                 </div>
 
                 <div class="row mb-4">
@@ -92,36 +115,60 @@
                 <div class="card-custom">
                     <h5 class="fw-bold mb-4">Thông tin cá nhân</h5>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted" style="font-size: 0.85rem;">Họ và Tên</label>
-                            <div class="fw-bold" id="info-name">--</div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted" style="font-size: 0.85rem;">Tuổi</label>
-                            <div class="fw-bold" id="info-age">--</div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted" style="font-size: 0.85rem;">Ngày sinh (Minh họa)</label>
-                            <div class="fw-bold">01/01/1950</div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted" style="font-size: 0.85rem;">Giới tính</label>
-                            <div class="fw-bold" id="info-gender">--</div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted" style="font-size: 0.85rem;">Địa chỉ</label>
-                            <div class="fw-bold" id="info-address">--</div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted" style="font-size: 0.85rem; color: #d93025 !important; font-weight:bold;">Liên hệ khẩn cấp (Minh họa)</label>
-                            <div class="fw-bold danger-text">0911.999.115 (Người nhà)</div>
-                        </div>
+                        <div class="col-md-6 mb-3"><label class="text-muted" style="font-size: 0.85rem;">Họ và Tên</label><div class="fw-bold" id="info-name">--</div></div>
+                        <div class="col-md-6 mb-3"><label class="text-muted" style="font-size: 0.85rem;">Tuổi</label><div class="fw-bold" id="info-age">--</div></div>
+                        <div class="col-md-6 mb-3"><label class="text-muted" style="font-size: 0.85rem;">Giới tính</label><div class="fw-bold" id="info-gender">--</div></div>
+                        <div class="col-md-6 mb-3"><label class="text-muted" style="font-size: 0.85rem;">Địa chỉ</label><div class="fw-bold" id="info-address">--</div></div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="addPatientModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Thêm Bệnh Nhân Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addPatientForm">
+                        <div class="mb-3">
+                            <label class="form-label">Mã Bệnh nhân (ID) *</label>
+                            <input type="text" class="form-control" id="newId" placeholder="VD: BN006" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Họ và Tên *</label>
+                            <input type="text" class="form-control" id="newName" required>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="form-label">Tuổi</label>
+                                <input type="number" class="form-control" id="newAge">
+                            </div>
+                            <div class="col">
+                                <label class="form-label">Giới tính</label>
+                                <select class="form-select" id="newGender">
+                                    <option value="Male">Nam</option>
+                                    <option value="Female">Nữ</option>
+                                    <option value="Other">Khác</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Địa chỉ</label>
+                            <input type="text" class="form-control" id="newAddress">
+                        </div>
+                        <div class="alert alert-danger d-none" id="addErrorMsg"></div>
+                        <button type="submit" class="btn btn-primary w-100" id="submitPatientBtn">Lưu Bệnh Nhân</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         const doctorId = localStorage.getItem('doctor_id');
@@ -132,7 +179,6 @@
         let chartInstance = null;
         let allPatients = [];
 
-        // Khởi tạo biểu đồ Chart.js
         function initChart() {
             const ctx = document.getElementById('historyChart').getContext('2d');
             chartInstance = new Chart(ctx, {
@@ -145,23 +191,44 @@
                         { label: 'Nhịp tim', borderColor: '#d93025', backgroundColor: 'transparent', data: [], tension: 0.3, borderDash: [5, 5] }
                     ]
                 },
-                options: {
-                    responsive: true,
-                    scales: { y: { suggestedMin: 50, suggestedMax: 160 } },
-                    animation: { duration: 0 } // Tắt hiệu ứng giật khi cập nhật realtime
-                }
+                options: { responsive: true, scales: { y: { suggestedMin: 50, suggestedMax: 160 } }, animation: { duration: 0 } }
             });
         }
 
-        // Lấy danh sách bệnh nhân
         async function fetchPatientsList() {
             try {
-                //
-                const response = await fetch(`http://localhost:8080/api/patients?doctor_id=${doctorId}`);
-                allPatients = await response.json();
+                // 1. Lấy danh sách bệnh nhân
+                const res = await fetch(`http://localhost:8080/api/patients?doctor_id=${doctorId}`);
+                allPatients = await res.json();
                 
-                let html = '';
-                allPatients.forEach(p => {
+                // 2. Tải qua 1 lượt lịch sử gần nhất để phân loại trạng thái cảnh báo
+                for(let p of allPatients) {
+                    const hRes = await fetch(`http://localhost:8080/api/patients/${p.patient_id}/history`);
+                    const history = await hRes.json();
+                    if(history.length > 0) {
+                        p.latestSys = history[0].systolic;
+                        p.isDanger = history[0].systolic > 140; // Tiêu chí cảnh báo
+                    } else {
+                        p.isDanger = false;
+                    }
+                }
+
+                // 3. Sắp xếp: Ai có isDanger = true lên đầu
+                allPatients.sort((a, b) => (b.isDanger === a.isDanger) ? 0 : b.isDanger ? 1 : -1);
+
+                renderPatientList(allPatients);
+            } catch (err) {
+                console.error('Lỗi tải danh sách:', err);
+            }
+        }
+
+        function renderPatientList(patients) {
+            let html = '';
+            if(patients.length === 0) {
+                html = '<p class="text-center text-muted mt-3">Chưa có dữ liệu.</p>';
+            } else {
+                patients.forEach(p => {
+                    const dotClass = p.isDanger ? 'danger' : 'safe';
                     html += `
                         <div class="patient-tab" id="tab-${p.patient_id}" onclick="selectPatient('${p.patient_id}')">
                             <div class="p-icon">${p.full_name.charAt(0)}</div>
@@ -169,28 +236,34 @@
                                 <div class="fw-bold text-dark">${p.full_name}</div>
                                 <div class="text-muted" style="font-size: 0.8rem;">ID: ${p.patient_id}</div>
                             </div>
+                            <div class="status-dot ${dotClass}"></div>
                         </div>
                     `;
                 });
-                document.getElementById('sidebarList').innerHTML = html;
-            } catch (err) {
-                console.error('Lỗi tải danh sách:', err);
+            }
+            document.getElementById('sidebarList').innerHTML = html;
+            
+            if (currentPatientId) {
+                const activeTab = document.getElementById(`tab-${currentPatientId}`);
+                if (activeTab) activeTab.classList.add('active');
             }
         }
 
-        // Khi click vào 1 bệnh nhân
+        function filterPatients() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (query === '') return renderPatientList(allPatients);
+            const filtered = allPatients.filter(p => p.full_name.toLowerCase().includes(query) || p.patient_id.toLowerCase().includes(query));
+            renderPatientList(filtered);
+        }
+
         function selectPatient(pid) {
             currentPatientId = pid;
-            
-            // Đổi style active cho tab
             document.querySelectorAll('.patient-tab').forEach(el => el.classList.remove('active'));
             document.getElementById(`tab-${pid}`).classList.add('active');
 
-            // Ẩn empty state, hiện detail
             document.getElementById('empty-state').style.display = 'none';
             document.getElementById('patient-detail-view').style.display = 'block';
 
-            // Điền thông tin cá nhân
             const p = allPatients.find(x => x.patient_id === pid);
             if(p) {
                 document.getElementById('detail-name').innerText = p.full_name;
@@ -201,62 +274,97 @@
                 document.getElementById('info-address').innerText = p.address || 'N/A';
             }
 
-            // Dọn dẹp interval cũ nếu đang chạy
             if (realtimeInterval) clearInterval(realtimeInterval);
-            
-            // Khởi tạo Chart nếu chưa có
             if (!chartInstance) initChart();
 
-            // Fetch dữ liệu ngay lập tức và cài đặt vòng lặp 3s
             fetchPatientHistory();
             realtimeInterval = setInterval(fetchPatientHistory, 3000);
         }
 
-        // Lấy 10 lịch sử gần nhất và cập nhật View + Chart
         async function fetchPatientHistory() {
             if (!currentPatientId) return;
             try {
-                // Backend trả về tối đa 20 bản ghi sắp xếp DESC
-                const response = await fetch(`http://localhost:8080/api/patients/${currentPatientId}/history`);
-                let history = await response.json();
-                
-                // Lấy tối đa 10 dòng
+                const res = await fetch(`http://localhost:8080/api/patients/${currentPatientId}/history`);
+                let history = await res.json();
                 history = history.slice(0, 10);
 
                 if (history.length > 0) {
-                    const latest = history[0]; // Mới nhất
+                    const latest = history[0];
                     const timeStr = new Date(latest.measured_at).toLocaleTimeString('vi-VN');
                     
-                    // Cập nhật Top Stats
                     document.getElementById('val-bp').innerText = `${latest.systolic}/${latest.diastolic}`;
                     document.getElementById('val-hr').innerText = `${latest.heart_rate} ❤️`;
                     document.getElementById('time-bp').innerText = `Cập nhật: ${timeStr}`;
                     document.getElementById('time-hr').innerText = `Cập nhật: ${timeStr}`;
 
-                    // Cảnh báo màu đỏ nếu Huyết áp quá cao (>140)
                     const bpEl = document.getElementById('val-bp');
-                    if (latest.systolic > 140) {
-                        bpEl.classList.remove('primary-text');
-                        bpEl.classList.add('danger-text');
-                    } else {
-                        bpEl.classList.add('primary-text');
-                        bpEl.classList.remove('danger-text');
-                    }
+                    if (latest.systolic > 140) { bpEl.classList.replace('primary-text', 'danger-text'); } 
+                    else { bpEl.classList.replace('danger-text', 'primary-text'); }
 
-                    // Cập nhật Chart (Phải đảo ngược mảng để vẽ từ cũ -> mới theo trục X)
                     const reversedHistory = [...history].reverse();
-                    
                     chartInstance.data.labels = reversedHistory.map(h => new Date(h.measured_at).toLocaleTimeString('vi-VN'));
                     chartInstance.data.datasets[0].data = reversedHistory.map(h => h.systolic);
                     chartInstance.data.datasets[1].data = reversedHistory.map(h => h.diastolic);
                     chartInstance.data.datasets[2].data = reversedHistory.map(h => h.heart_rate);
                     chartInstance.update();
+                } else {
+                    document.getElementById('val-bp').innerText = `--/--`;
+                    document.getElementById('val-hr').innerText = `-- ❤️`;
+                    
+                    chartInstance.data.labels = [];
+                    chartInstance.data.datasets.forEach(d => d.data = []);
+                    chartInstance.update();
                 }
-
-            } catch (err) {
-                console.error("Lỗi tải lịch sử:", err);
-            }
+            } catch (err) { console.error("Lỗi tải lịch sử:", err); }
         }
+
+        // Xử lý Form Thêm Bệnh Nhân
+        document.getElementById('addPatientForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitPatientBtn');
+            const errorMsg = document.getElementById('addErrorMsg');
+            
+            btn.innerHTML = 'Đang lưu...';
+            btn.disabled = true;
+            errorMsg.classList.add('d-none');
+
+            const payload = {
+                patient_id: document.getElementById('newId').value,
+                doctor_id: parseInt(doctorId),
+                full_name: document.getElementById('newName').value,
+                age: document.getElementById('newAge').value || null,
+                gender: document.getElementById('newGender').value,
+                address: document.getElementById('newAddress').value
+            };
+
+            try {
+                const response = await fetch('http://localhost:8080/api/patients', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                if(data.success) {
+                    // Đóng Modal (Dùng hàm của Bootstrap)
+                    const modalEl = document.getElementById('addPatientModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide();
+                    
+                    // Xóa form và Tải lại danh sách
+                    document.getElementById('addPatientForm').reset();
+                    fetchPatientsList();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch(err) {
+                errorMsg.innerText = err.message || "Không thể lưu bệnh nhân (Kiểm tra xem ID có trùng không).";
+                errorMsg.classList.remove('d-none');
+            } finally {
+                btn.innerHTML = 'Lưu Bệnh Nhân';
+                btn.disabled = false;
+            }
+        });
 
         function logout() {
             localStorage.clear();
@@ -264,7 +372,6 @@
             window.location.href = 'login.html';
         }
 
-        // Chạy lần đầu
         fetchPatientsList();
     </script>
 </body>

@@ -131,6 +131,20 @@ app.post('/api/login', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+// API: Thêm bệnh nhân mới
+app.post('/api/patients', async (req, res) => {
+    try {
+        const { patient_id, doctor_id, full_name, age, gender, address } = req.body;
+        const sql = `
+            INSERT INTO Patients (patient_id, doctor_id, full_name, age, gender, address) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+        await dbPool.execute(sql, [patient_id, doctor_id, full_name, age, gender, address]);
+        res.json({ success: true, message: 'Thêm bệnh nhân thành công' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 
 const PORT = process.env.PORT || 8080;
