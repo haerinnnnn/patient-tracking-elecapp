@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập - Hệ thống Y tế</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">    
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f4f9;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Thay đổi font thành Inter tại đây */
+            font-family: "Inter", sans-serif;
+            margin: 0;
+            overflow: hidden; 
+            position: relative;
+        }
+
+        /* ----- HIỆU ỨNG NHỊP TIM CHẠY NỀN ----- */
+        .heartbeat-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200vw;
+            height: 100vh;
+            z-index: -1; 
+            opacity: 0.15; 
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Cpath d='M 0 100 L 150 100 L 160 80 L 170 100 L 190 100 L 200 20 L 220 180 L 230 100 L 250 100 L 260 90 L 270 100 L 400 100' fill='none' stroke='%231a73e8' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+            background-position: center;
+            background-size: 400px auto;
+            animation: scrollHeartbeat 3s linear infinite;
+        }
+
+        @keyframes scrollHeartbeat {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-400px); }
+        }
+        
+        #page-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            width: 100%;
+            max-width: 420px;
+            z-index: 10;
+        }
+        /* Chữ của thẻ H3 sẽ dùng font Inter ở dạng Semi-Bold (600) */
+        .login-card h3 { font-weight: 600; color: #1f1f1f; margin-bottom: 8px; }
+        .login-card p { color: #5f6368; margin-bottom: 24px; font-size: 0.95rem; }
+        
+        .form-control { border-radius: 8px; padding: 12px; border: 1px solid #dadce0; }
+        .form-control:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
+        /* Nút bấm dùng font Inter Medium (500) */
+        .btn-primary { background-color: #1a73e8; border: none; padding: 12px; border-radius: 8px; font-weight: 500; transition: background-color 0.2s;}
+        .btn-primary:hover { background-color: #1557b0; }
+        
+        .custom-link { color: #1a73e8; text-decoration: none; font-size: 0.9rem; }
+        .custom-link:hover { text-decoration: underline; }
+
+        .overlay-loading {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #f0f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease-in;
+            z-index: 9999;
+        }
+
+        .overlay-loading.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .custom-spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 4px solid rgba(26, 115, 232, 0.2);
+            border-top-color: #1a73e8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .page-leaving {
+            opacity: 0 !important;
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="heartbeat-bg"></div>
+
+    <div class="overlay-loading" id="loadingScreen">
+        <div class="custom-spinner"></div>
+        <h5 style="color: #1f1f1f; font-weight: 600;">Đang khởi tạo không gian làm việc...</h5>
+        <p class="text-muted" style="font-size: 0.9rem;">Vui lòng chờ trong giây lát</p>
+    </div>
+
+    <div id="page-content">
+        <div class="login-card">
+            <h3>Chào mừng trở lại!</h3>
+            <p>Vui lòng đăng nhập để truy cập hệ thống theo dõi.</p>
+            
+            <div id="error-msg" class="alert alert-danger d-none" style="font-size: 0.9rem;"></div>
+            
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label class="form-label" style="font-size: 0.9rem; font-weight: 500;">Tên đăng nhập *</label>
+                    <input type="text" id="username" class="form-control" value="dr_admin" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label" style="font-size: 0.9rem; font-weight: 500;">Mật khẩu *</label>
+                    <input type="password" id="password" class="form-control" value="123456" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 mb-3" id="loginBtn">Đăng Nhập</button>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="#" class="custom-link">Quên mật khẩu?</a>
+                    <a href="#" class="custom-link text-muted">Cần một tài khoản?</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const errorMsg = document.getElementById('error-msg');
+            const pageContent = document.getElementById('page-content');
+            const loadingScreen = document.getElementById('loadingScreen');
+            
+            errorMsg.classList.add('d-none');
+            
+            btn.innerHTML = 'Đang xác thực...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('http://localhost:8080/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem('doctor_id', data.doctor_id);
+                    localStorage.setItem('doctor_name', data.full_name);
+                    
+                    pageContent.classList.add('page-leaving');
+                    
+                    setTimeout(() => {
+                        loadingScreen.classList.add('active');
+                    }, 300);
+
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1800);
+
+                } else {
+                    throw new Error(data.error || 'Sai thông tin đăng nhập');
+                }
+            } catch (error) {
+                errorMsg.textContent = error.message === 'Failed to fetch' ? 'Lỗi kết nối Backend. Hãy chắc chắn server.js đang chạy!' : error.message;
+                errorMsg.classList.remove('d-none');
+                btn.innerHTML = 'Đăng Nhập';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
