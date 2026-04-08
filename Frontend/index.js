@@ -5,16 +5,17 @@ function createWindow () {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
+    
+    // THÊM DÒNG NÀY: Khai báo màu nền giống với CSS (màu #f0f4f9)
+    backgroundColor: '#f0f4f9', 
+
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false // Cho phép dùng JS thuần trong HTML dễ dàng
+      contextIsolation: false 
     }
   });
 
-  // Ẩn menu mặc định cho chuyên nghiệp
   win.setMenuBarVisibility(false);
-
-  // Load màn hình đăng nhập đầu tiên
   win.loadFile('login.html');
 }
 

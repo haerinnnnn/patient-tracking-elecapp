@@ -6,54 +6,100 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* CSS reset va setup font muot ma */
         body { 
             background-color: #f0f4f9; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            height: 100vh; 
-            overflow: hidden; 
-            margin: 0; 
-            animation: fadeInPage 0.6s ease-out forwards;
-            opacity: 0;
+            font-family: "Public Sans", 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            height: 100vh; overflow: hidden; margin: 0; 
+            animation: fadeInPage 0.6s ease-out forwards; opacity: 0;
+            -webkit-font-smoothing: antialiased;
         }
         @keyframes fadeInPage {
             0% { opacity: 0; transform: translateY(10px); }
             100% { opacity: 1; transform: translateY(0); }
         }
 
+        /* Chinh sua thanh cuon scrollbar cho giong macOS */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd0d4; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a0a5a8; }
+
+        /* Layout chinh chia 2 cot */
         .dashboard-container { display: flex; height: 100vh; }
         
-        .sidebar { width: 340px; background: white; border-right: 1px solid #dadce0; display: flex; flex-direction: column; }
+        /* Cot trai Sidebar */
+        .sidebar { width: 350px; background: white; border-right: 1px solid #dadce0; display: flex; flex-direction: column; position: relative;}
         .sidebar-header { padding: 20px 20px 15px 20px; border-bottom: 1px solid #dadce0; }
         
-        .search-box { position: relative; margin: 0 20px 15px 20px; }
-        .search-box input { padding-left: 35px; border-radius: 8px; border: 1px solid #dadce0; font-size: 0.9rem; }
-        .search-box input:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
-        .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #5f6368; }
+        /* Style cho nut bam Solid */
+        .btn-primary { background-color: #1a73e8; border-color: #1a73e8; color: white; font-weight: 500;}
+        .btn-primary:hover { background-color: #1557b0; border-color: #1557b0; }
+        .btn-danger { background-color: #d93025; border-color: #d93025; color: white; font-weight: 500;}
+        .btn-danger:hover { background-color: #b3261e; border-color: #b3261e; }
 
-        .patient-list { overflow-y: auto; flex-grow: 1; padding: 10px 20px; }
-        
+        /* Khung tim kiem */
+        .search-box { position: relative; margin: 0 20px 10px 20px; }
+        .search-box input { padding-left: 15px; border-radius: 8px; border: 1px solid #dadce0; font-size: 0.9rem; }
+        .search-box input:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
+
+        /* Cac nut filter loc danh sach */
+        .filter-pills { margin: 0 20px 15px 20px; display: flex; gap: 8px; }
+        .pill-btn { border: 1px solid #dadce0; background: white; color: #5f6368; padding: 4px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.2s;}
+        .pill-btn:hover { background: #f8f9fa; }
+        .pill-btn.active { background: #424242; color: white; border-color: #424242; }
+
+        /* Danh sach the benh nhan */
+        .patient-list { overflow-y: auto; flex-grow: 1; padding: 0 20px 10px 20px; margin-bottom: 50px;} 
         .patient-tab { position: relative; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; border: 1px solid transparent; }
         .patient-tab:hover { background: #f8f9fa; }
         .patient-tab.active { background: #e8f0fe; border-color: #1a73e8; }
         
-        /* Chấm trạng thái cảnh báo trên danh sách */
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); }
+        /* Dau cham trang thai huyet ap (Do/Xanh) */
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); transition: all 0.3s;}
         .status-dot.danger { background-color: #d93025; box-shadow: 0 0 5px rgba(217, 48, 37, 0.5); }
         .status-dot.safe { background-color: #137333; }
+        .patient-tab .p-icon { width: 40px; height: 40px; border-radius: 50%; background: #1a73e8; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0;}
         
-        .patient-tab .p-icon { width: 40px; height: 40px; border-radius: 50%; background: #1a73e8; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; }
-        
+        /* Nut ghim benh nhan hien thi khi hover */
+        .pin-btn { position: absolute; right: 35px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; background: #e8eaed; color: #5f6368; display: none; z-index: 5; }
+        .patient-tab:hover .pin-btn { display: block; }
+        .pin-btn.pinned { display: block; background: #1a73e8; color: white; }
+
+        /* Khung bao ket noi day Sidebar */
+        .live-status-footer { position: absolute; bottom: 0; left: 0; width: 100%; padding: 12px 20px; background: #fff; border-top: 1px solid #dadce0; display: flex; align-items: center; font-size: 0.85rem; font-weight: 500;}
+        .pulse-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 10px; }
+        .pulse-dot.active { background-color: #137333; box-shadow: 0 0 0 0 rgba(19, 115, 51, 0.7); animation: pulseLive 1.5s infinite; }
+        .pulse-dot.error { background-color: #d93025; animation: none; box-shadow: none;}
+        @keyframes pulseLive { 
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(19, 115, 51, 0.7); } 
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(19, 115, 51, 0); } 
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(19, 115, 51, 0); } 
+        }
+
+        /* Cot phai khu vuc noi dung chinh */
         .main-content { flex-grow: 1; overflow-y: auto; padding: 30px; background-color: #f0f4f9; display: flex; flex-direction: column;}
-        .card-custom { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); margin-bottom: 24px; border: 1px solid #eef0f2; }
+        
+        /* UI The Card do bong nhe */
+        .card-custom { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); margin-bottom: 24px; border: 1px solid #eef0f2; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .card-custom:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.05); }
         
         .stat-label { font-size: 0.9rem; color: #5f6368; text-transform: uppercase; letter-spacing: 1px;}
-        .stat-val { font-size: 2.2rem; font-weight: bold; margin: 10px 0; }
+        .stat-val { font-size: 2.2rem; font-weight: bold; margin: 10px 0; display: flex; align-items: baseline;}
         
+        /* Bang mau dung cho chi so */
         .danger-text { color: #d93025; }
         .primary-text { color: #1a73e8; }
         .safe-text { color: #137333; }
+        
+        /* Giao dien chi bao xu huong tang/giam (+/-) */
+        .trend-val { font-size: 1.1rem; margin-left: 10px; font-weight: 600; padding: 2px 8px; border-radius: 6px;}
+        .trend-up { background: #fce8e6; color: #d93025; }
+        .trend-down { background: #e6f4ea; color: #137333; }
+        .trend-neutral { background: #f1f3f4; color: #5f6368; }
 
-        #empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #80868b; }
+        /* Noi chua Toast Popup o goc man hinh */
+        .toast-container { z-index: 9999; }
     </style>
 </head>
 <body>
@@ -63,25 +109,60 @@
             <div class="sidebar-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 fw-bold">Bệnh nhân</h5>
                 <div>
-                    <button class="btn btn-sm btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addPatientModal">+ Thêm</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="logout()">Thoát</button>
+                    <button class="btn btn-sm btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addPatientModal">Thêm</button>
+                    <button class="btn btn-sm btn-danger" onclick="logout()">Thoát</button>
                 </div>
             </div>
             
             <div class="search-box mt-3">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="searchInput" class="form-control" placeholder="Tìm theo tên hoặc ID..." oninput="filterPatients()">
+                <input type="text" id="searchInput" class="form-control" placeholder="Tìm theo tên (Ctrl+F)" oninput="applyFilters()">
+            </div>
+
+            <div class="filter-pills">
+                <div class="pill-btn active" id="btn-filter-all" onclick="setFilter('all')">Tất cả</div>
+                <div class="pill-btn" id="btn-filter-danger" onclick="setFilter('danger')">Cảnh báo</div>
+                <div class="pill-btn" id="btn-filter-safe" onclick="setFilter('safe')">Ổn định</div>
+            </div>
+
+            <div class="px-3 mb-2">
+                <button class="btn btn-sm btn-light w-100 border text-start fw-bold" onclick="showOverview()">Bảng Tổng Quan Khoa</button>
             </div>
 
             <div class="patient-list" id="sidebarList">
                 <p class="text-center text-muted mt-3">Đang tải và phân tích dữ liệu...</p>
             </div>
+
+            <div class="live-status-footer" id="liveStatusBox">
+                <div class="pulse-dot active" id="liveDot"></div>
+                <span id="liveText" style="color: #137333;">Đang đồng bộ trực tiếp...</span>
+            </div>
         </div>
 
         <div class="main-content">
-            <div id="empty-state">
-                <h3>👈 Chọn một bệnh nhân để xem chi tiết</h3>
-                <p>Danh sách đã được tự động ưu tiên các bệnh nhân có chỉ số huyết áp cao.</p>
+            
+            <div id="overview-dashboard" style="display: block;">
+                <h3 class="fw-bold mb-4">Tổng quan Tình trạng Khoa</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card-custom">
+                            <div class="stat-label">Tổng số Bệnh nhân</div>
+                            <div class="stat-val text-dark" id="overview-total">0</div>
+                            <div class="text-muted" style="font-size: 0.85rem;">Đang được theo dõi realtime</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card-custom" style="border-left: 4px solid #d93025;">
+                            <div class="stat-label">Ca cảnh báo Huyết áp (>140)</div>
+                            <div class="stat-val danger-text" id="overview-danger">0</div>
+                            <div class="text-muted" style="font-size: 0.85rem;">Cần chú ý ngay</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-custom d-flex justify-content-center align-items-center" style="height: 350px;">
+                    <div style="width: 300px;">
+                        <canvas id="wardPieChart"></canvas>
+                    </div>
+                </div>
             </div>
 
             <div id="patient-detail-view" style="display: none;">
@@ -93,16 +174,16 @@
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <div class="card-custom">
-                            <div class="stat-label">Huyết áp đo lần cuối (mmHg)</div>
+                            <div class="stat-label">Huyết áp Tâm thu/Trương</div>
                             <div class="stat-val primary-text" id="val-bp">--/--</div>
-                            <div class="text-muted" style="font-size: 0.85rem;" id="time-bp">Cập nhật: --:--:--</div>
+                            <div class="text-muted" style="font-size: 0.85rem;" id="time-bp">Cập nhật: --</div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="card-custom">
                             <div class="stat-label">Nhịp tim (BPM)</div>
-                            <div class="stat-val danger-text" id="val-hr">-- ❤️</div>
-                            <div class="text-muted" style="font-size: 0.85rem;" id="time-hr">Cập nhật: --:--:--</div>
+                            <div class="stat-val danger-text" id="val-hr">--</div>
+                            <div class="text-muted" style="font-size: 0.85rem;" id="time-hr">Cập nhật: --</div>
                         </div>
                     </div>
                 </div>
@@ -125,41 +206,26 @@
         </div>
     </div>
 
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
     <div class="modal fade" id="addPatientModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold">Thêm Bệnh Nhân Mới</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="addPatientForm">
-                        <div class="mb-3">
-                            <label class="form-label">Mã Bệnh nhân (ID) *</label>
-                            <input type="text" class="form-control" id="newId" placeholder="VD: BN006" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Họ và Tên *</label>
-                            <input type="text" class="form-control" id="newName" required>
-                        </div>
+                        <div class="mb-3"><label class="form-label">Mã Bệnh nhân (ID) *</label><input type="text" class="form-control" id="newId" required></div>
+                        <div class="mb-3"><label class="form-label">Họ và Tên *</label><input type="text" class="form-control" id="newName" required></div>
                         <div class="row mb-3">
-                            <div class="col">
-                                <label class="form-label">Tuổi</label>
-                                <input type="number" class="form-control" id="newAge">
-                            </div>
-                            <div class="col">
-                                <label class="form-label">Giới tính</label>
-                                <select class="form-select" id="newGender">
-                                    <option value="Male">Nam</option>
-                                    <option value="Female">Nữ</option>
-                                    <option value="Other">Khác</option>
-                                </select>
+                            <div class="col"><label class="form-label">Tuổi</label><input type="number" class="form-control" id="newAge"></div>
+                            <div class="col"><label class="form-label">Giới tính</label>
+                                <select class="form-select" id="newGender"><option value="Male">Nam</option><option value="Female">Nữ</option><option value="Other">Khác</option></select>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Địa chỉ</label>
-                            <input type="text" class="form-control" id="newAddress">
-                        </div>
+                        <div class="mb-3"><label class="form-label">Địa chỉ</label><input type="text" class="form-control" id="newAddress"></div>
                         <div class="alert alert-danger d-none" id="addErrorMsg"></div>
                         <button type="submit" class="btn btn-primary w-100" id="submitPatientBtn">Lưu Bệnh Nhân</button>
                     </form>
@@ -171,154 +237,306 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Kiem tra da login chua
         const doctorId = localStorage.getItem('doctor_id');
         if (!doctorId) window.location.href = 'login.html';
 
+        // Khai bao state toan cuc
         let currentPatientId = null;
-        let realtimeInterval = null;
-        let chartInstance = null;
         let allPatients = [];
+        let chartInstance = null;
+        let pieChartInstance = null;
+        let notifiedRecords = new Set(); 
+        let currentFilterStatus = 'all'; 
+        let pinnedPatients = new Set(JSON.parse(localStorage.getItem('pinnedPatients') || '[]'));
 
-        function initChart() {
+        // Xu ly lang nghe cac phim tat tu ban phim (Ctrl+F, Ctrl+N, Esc)
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key.toLowerCase() === 'f') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+            if (e.ctrlKey && e.key.toLowerCase() === 'n') {
+                e.preventDefault();
+                new bootstrap.Modal(document.getElementById('addPatientModal')).show();
+            }
+            if (e.key === 'Escape') {
+                document.getElementById('searchInput').blur();
+            }
+        });
+
+        // Ham tinh toan the hien khoang thoi gian tuong doi (VD: Vua xong)
+        function timeAgo(dateParam) {
+            const date = new Date(dateParam);
+            const diffInSeconds = Math.floor((new Date() - date) / 1000);
+            if (diffInSeconds < 10) return "Vừa xong";
+            if (diffInSeconds < 60) return `${diffInSeconds} giây trước`;
+            const diffInMinutes = Math.floor(diffInSeconds / 60);
+            if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
+            const diffInHours = Math.floor(diffInMinutes / 60);
+            if (diffInHours < 24) return `${diffInHours} giờ trước`;
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        // Ham dung thu vien de ve chart line va pie
+        function initCharts() {
             const ctx = document.getElementById('historyChart').getContext('2d');
             chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: [],
                     datasets: [
-                        { label: 'Tâm thu (Systolic)', borderColor: '#1a73e8', backgroundColor: 'rgba(26,115,232,0.1)', data: [], tension: 0.3, fill: true },
-                        { label: 'Tâm trương (Diastolic)', borderColor: '#137333', backgroundColor: 'transparent', data: [], tension: 0.3 },
+                        { label: 'Tâm thu', borderColor: '#1a73e8', backgroundColor: 'transparent', data: [], tension: 0.3, fill: false },
+                        { label: 'Tâm trương', borderColor: '#137333', backgroundColor: 'transparent', data: [], tension: 0.3 },
                         { label: 'Nhịp tim', borderColor: '#d93025', backgroundColor: 'transparent', data: [], tension: 0.3, borderDash: [5, 5] }
                     ]
                 },
                 options: { responsive: true, scales: { y: { suggestedMin: 50, suggestedMax: 160 } }, animation: { duration: 0 } }
             });
+
+            const pCtx = document.getElementById('wardPieChart').getContext('2d');
+            pieChartInstance = new Chart(pCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['An toàn (<=140)', 'Cảnh báo (>140)'],
+                    datasets: [{ data: [1, 0], backgroundColor: ['#137333', '#d93025'] }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } }, animation: { duration: 0 } }
+            });
         }
 
-        async function fetchPatientsList() {
+        // Ham trigger hien pop-up thong bao o goc man hinh
+        function showToast(title, message) {
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-danger border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                  <div class="d-flex">
+                    <div class="toast-body"><strong>${title}</strong><br>${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                  </div>
+                </div>
+            `;
+            const container = document.getElementById('toastContainer');
+            container.insertAdjacentHTML('beforeend', toastHtml);
+            const toastEl = container.lastElementChild;
+            const toast = new bootstrap.Toast(toastEl, { delay: 7000 });
+            toast.show();
+            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+        }
+
+        // Thay doi giao dien den bao hieu ket noi thanh cong hay loi
+        function setLiveStatus(isLive) {
+            const dot = document.getElementById('liveDot');
+            const text = document.getElementById('liveText');
+            if (isLive) {
+                dot.className = 'pulse-dot active';
+                text.innerText = 'Đang đồng bộ trực tiếp...';
+                text.style.color = '#137333';
+            } else {
+                dot.className = 'pulse-dot error';
+                text.innerText = 'Mất kết nối Máy chủ';
+                text.style.color = '#d93025';
+            }
+        }
+
+        // Ham xu ly su kien nut ghim benh nhan
+        function togglePin(pid, event) {
+            event.stopPropagation();
+            if (pinnedPatients.has(pid)) {
+                pinnedPatients.delete(pid);
+            } else {
+                pinnedPatients.add(pid);
+            }
+            localStorage.setItem('pinnedPatients', JSON.stringify([...pinnedPatients]));
+            applyFilters();
+        }
+
+        // Ham thay doi trang thai UI cua cac nut loc
+        function setFilter(status) {
+            currentFilterStatus = status;
+            document.querySelectorAll('.pill-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`btn-filter-${status}`).classList.add('active');
+            applyFilters();
+        }
+
+        // Ham xu ly loop lay data lien tuc tu server nodejs
+        async function syncGlobalData() {
             try {
-                // 1. Lấy danh sách bệnh nhân
-                const res = await fetch(`http://localhost:8080/api/patients?doctor_id=${doctorId}`);
-                allPatients = await res.json();
-                
-                // 2. Tải qua 1 lượt lịch sử gần nhất để phân loại trạng thái cảnh báo
-                for(let p of allPatients) {
+                if (allPatients.length === 0) {
+                    const res = await fetch(`http://localhost:8080/api/patients?doctor_id=${doctorId}`);
+                    allPatients = await res.json();
+                }
+
+                let dangerCount = 0;
+                let safeCount = 0;
+
+                await Promise.all(allPatients.map(async (p) => {
                     const hRes = await fetch(`http://localhost:8080/api/patients/${p.patient_id}/history`);
                     const history = await hRes.json();
-                    if(history.length > 0) {
-                        p.latestSys = history[0].systolic;
-                        p.isDanger = history[0].systolic > 140; // Tiêu chí cảnh báo
+                    
+                    if (history.length > 0) {
+                        const latest = history[0];
+                        p.latestHistory = history; 
+                        p.isDanger = latest.systolic > 140;
+                        
+                        if (p.isDanger) {
+                            dangerCount++;
+                            const recordKey = `${p.patient_id}_${latest.measured_at}`;
+                            if (!notifiedRecords.has(recordKey)) {
+                                showToast("Cảnh báo Huyết Áp", `Bệnh nhân ${p.full_name} (${p.patient_id}) vừa đo: ${latest.systolic}/${latest.diastolic} mmHg`);
+                                notifiedRecords.add(recordKey);
+                            }
+                        } else { safeCount++; }
                     } else {
                         p.isDanger = false;
+                        p.latestHistory = [];
                     }
+                }));
+
+                setLiveStatus(true);
+
+                // Thuat toan sap xep danh sach: Uu tien Pin -> Danger -> Binh thuong
+                allPatients.sort((a, b) => {
+                    const aPinned = pinnedPatients.has(a.patient_id);
+                    const bPinned = pinnedPatients.has(b.patient_id);
+                    if (aPinned !== bPinned) return aPinned ? -1 : 1;
+                    if (b.isDanger !== a.isDanger) return b.isDanger ? 1 : -1;
+                    return 0;
+                });
+
+                applyFilters(); 
+
+                // Ve lai pie chart va con so cho man overview
+                document.getElementById('overview-total').innerText = allPatients.length;
+                document.getElementById('overview-danger').innerText = dangerCount;
+                pieChartInstance.data.datasets[0].data = [safeCount, dangerCount];
+                pieChartInstance.update();
+
+                if (currentPatientId) {
+                    updateDetailUI(currentPatientId);
                 }
 
-                // 3. Sắp xếp: Ai có isDanger = true lên đầu
-                allPatients.sort((a, b) => (b.isDanger === a.isDanger) ? 0 : b.isDanger ? 1 : -1);
-
-                renderPatientList(allPatients);
             } catch (err) {
-                console.error('Lỗi tải danh sách:', err);
+                console.error('Lỗi Sync:', err);
+                setLiveStatus(false);
             }
         }
 
-        function renderPatientList(patients) {
-            let html = '';
-            if(patients.length === 0) {
-                html = '<p class="text-center text-muted mt-3">Chưa có dữ liệu.</p>';
-            } else {
-                patients.forEach(p => {
-                    const dotClass = p.isDanger ? 'danger' : 'safe';
-                    html += `
-                        <div class="patient-tab" id="tab-${p.patient_id}" onclick="selectPatient('${p.patient_id}')">
-                            <div class="p-icon">${p.full_name.charAt(0)}</div>
-                            <div>
-                                <div class="fw-bold text-dark">${p.full_name}</div>
-                                <div class="text-muted" style="font-size: 0.8rem;">ID: ${p.patient_id}</div>
-                            </div>
-                            <div class="status-dot ${dotClass}"></div>
-                        </div>
-                    `;
-                });
-            }
-            document.getElementById('sidebarList').innerHTML = html;
-            
-            if (currentPatientId) {
-                const activeTab = document.getElementById(`tab-${currentPatientId}`);
-                if (activeTab) activeTab.classList.add('active');
-            }
-        }
-
-        function filterPatients() {
+        // Filter chinh: ap dung ca thanh tim kiem va tab pills
+        function applyFilters() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
-            if (query === '') return renderPatientList(allPatients);
-            const filtered = allPatients.filter(p => p.full_name.toLowerCase().includes(query) || p.patient_id.toLowerCase().includes(query));
-            renderPatientList(filtered);
+            
+            const filtered = allPatients.filter(p => {
+                const matchText = p.full_name.toLowerCase().includes(query) || p.patient_id.toLowerCase().includes(query);
+                let matchStatus = true;
+                if (currentFilterStatus === 'danger') matchStatus = p.isDanger;
+                if (currentFilterStatus === 'safe') matchStatus = !p.isDanger;
+                return matchText && matchStatus;
+            });
+            
+            let html = '';
+            filtered.forEach(p => {
+                const dotClass = p.isDanger ? 'danger' : 'safe';
+                const isPinned = pinnedPatients.has(p.patient_id);
+                html += `
+                    <div class="patient-tab ${currentPatientId === p.patient_id ? 'active' : ''}" onclick="selectPatient('${p.patient_id}')">
+                        <div class="p-icon">${p.full_name.charAt(0)}</div>
+                        <div style="flex-grow: 1;">
+                            <div class="fw-bold text-dark">${p.full_name}</div>
+                            <div class="text-muted" style="font-size: 0.8rem;">ID: ${p.patient_id}</div>
+                        </div>
+                        <div class="pin-btn ${isPinned ? 'pinned' : ''}" onclick="togglePin('${p.patient_id}', event)">
+                            ${isPinned ? 'Đã ghim' : 'Ghim'}
+                        </div>
+                        <div class="status-dot ${dotClass}"></div>
+                    </div>
+                `;
+            });
+            document.getElementById('sidebarList').innerHTML = html;
         }
 
+        // Chuyen sang view nhin ho so ca nhan
         function selectPatient(pid) {
             currentPatientId = pid;
-            document.querySelectorAll('.patient-tab').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${pid}`).classList.add('active');
-
-            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('overview-dashboard').style.display = 'none';
             document.getElementById('patient-detail-view').style.display = 'block';
+            applyFilters(); 
+            updateDetailUI(pid);
+        }
 
+        // Chuyen sang view nhin bang thong ke
+        function showOverview() {
+            currentPatientId = null;
+            document.getElementById('overview-dashboard').style.display = 'block';
+            document.getElementById('patient-detail-view').style.display = 'none';
+            applyFilters(); 
+        }
+
+        // Mapping chi so benh nhan duoc select vao UI de xem
+        function updateDetailUI(pid) {
             const p = allPatients.find(x => x.patient_id === pid);
-            if(p) {
-                document.getElementById('detail-name').innerText = p.full_name;
-                document.getElementById('detail-id').innerText = p.patient_id;
-                document.getElementById('info-name').innerText = p.full_name;
-                document.getElementById('info-age').innerText = p.age || 'N/A';
-                document.getElementById('info-gender').innerText = p.gender || 'N/A';
-                document.getElementById('info-address').innerText = p.address || 'N/A';
-            }
+            if(!p) return;
 
-            if (realtimeInterval) clearInterval(realtimeInterval);
-            if (!chartInstance) initChart();
+            document.getElementById('detail-name').innerText = p.full_name;
+            document.getElementById('detail-id').innerText = p.patient_id;
+            document.getElementById('info-name').innerText = p.full_name;
+            document.getElementById('info-age').innerText = p.age || 'N/A';
+            document.getElementById('info-gender').innerText = p.gender || 'N/A';
+            document.getElementById('info-address').innerText = p.address || 'N/A';
 
-            fetchPatientHistory();
-            realtimeInterval = setInterval(fetchPatientHistory, 3000);
-        }
-
-        async function fetchPatientHistory() {
-            if (!currentPatientId) return;
-            try {
-                const res = await fetch(`http://localhost:8080/api/patients/${currentPatientId}/history`);
-                let history = await res.json();
-                history = history.slice(0, 10);
-
-                if (history.length > 0) {
-                    const latest = history[0];
-                    const timeStr = new Date(latest.measured_at).toLocaleTimeString('vi-VN');
+            const history = (p.latestHistory || []).slice(0, 10);
+            if (history.length > 0) {
+                const latest = history[0];
+                
+                // Tinh toan chenh lech tang hay giam so voi lan do truoc
+                let trendBpHtml = '';
+                let trendHrHtml = '';
+                if (history.length > 1) {
+                    const prev = history[1];
+                    const diffSys = latest.systolic - prev.systolic;
+                    const diffHr = latest.heart_rate - prev.heart_rate;
                     
-                    document.getElementById('val-bp').innerText = `${latest.systolic}/${latest.diastolic}`;
-                    document.getElementById('val-hr').innerText = `${latest.heart_rate} ❤️`;
-                    document.getElementById('time-bp').innerText = `Cập nhật: ${timeStr}`;
-                    document.getElementById('time-hr').innerText = `Cập nhật: ${timeStr}`;
-
-                    const bpEl = document.getElementById('val-bp');
-                    if (latest.systolic > 140) { bpEl.classList.replace('primary-text', 'danger-text'); } 
-                    else { bpEl.classList.replace('danger-text', 'primary-text'); }
-
-                    const reversedHistory = [...history].reverse();
-                    chartInstance.data.labels = reversedHistory.map(h => new Date(h.measured_at).toLocaleTimeString('vi-VN'));
-                    chartInstance.data.datasets[0].data = reversedHistory.map(h => h.systolic);
-                    chartInstance.data.datasets[1].data = reversedHistory.map(h => h.diastolic);
-                    chartInstance.data.datasets[2].data = reversedHistory.map(h => h.heart_rate);
-                    chartInstance.update();
-                } else {
-                    document.getElementById('val-bp').innerText = `--/--`;
-                    document.getElementById('val-hr').innerText = `-- ❤️`;
-                    
-                    chartInstance.data.labels = [];
-                    chartInstance.data.datasets.forEach(d => d.data = []);
-                    chartInstance.update();
+                    if (diffSys !== 0) {
+                        const sign = diffSys > 0 ? '+' : '';
+                        const tClass = diffSys > 0 ? 'trend-up' : 'trend-down';
+                        trendBpHtml = `<span class="trend-val ${tClass}">${sign}${diffSys}</span>`;
+                    }
+                    if (diffHr !== 0) {
+                        const sign = diffHr > 0 ? '+' : '';
+                        const tClass = diffHr > 0 ? 'trend-up' : 'trend-down';
+                        trendHrHtml = `<span class="trend-val ${tClass}">${sign}${diffHr}</span>`;
+                    }
                 }
-            } catch (err) { console.error("Lỗi tải lịch sử:", err); }
+                
+                // Cap nhat so va string thoi gian
+                document.getElementById('val-bp').innerHTML = `${latest.systolic}/${latest.diastolic} ${trendBpHtml}`;
+                document.getElementById('val-hr').innerHTML = `${latest.heart_rate} ${trendHrHtml}`;
+                document.getElementById('time-bp').innerText = `Cập nhật: ${timeAgo(latest.measured_at)}`;
+                document.getElementById('time-hr').innerText = `Cập nhật: ${timeAgo(latest.measured_at)}`;
+
+                // Doi mau chu the hien canh bao
+                const bpEl = document.getElementById('val-bp');
+                if (latest.systolic > 140) { bpEl.className = 'stat-val danger-text'; } 
+                else { bpEl.className = 'stat-val primary-text'; }
+
+                // Map data line chart
+                const reversed = [...history].reverse();
+                chartInstance.data.labels = reversed.map(h => new Date(h.measured_at).toLocaleTimeString('vi-VN'));
+                chartInstance.data.datasets[0].data = reversed.map(h => h.systolic);
+                chartInstance.data.datasets[1].data = reversed.map(h => h.diastolic);
+                chartInstance.data.datasets[2].data = reversed.map(h => h.heart_rate);
+                chartInstance.update();
+            } else {
+                document.getElementById('val-bp').innerHTML = `--/--`;
+                document.getElementById('val-hr').innerHTML = `--`;
+                document.getElementById('time-bp').innerText = `Cập nhật: Chưa có dữ liệu`;
+                document.getElementById('time-hr').innerText = `Cập nhật: Chưa có dữ liệu`;
+                chartInstance.data.labels = [];
+                chartInstance.data.datasets.forEach(d => d.data = []);
+                chartInstance.update();
+            }
         }
 
-        // Xử lý Form Thêm Bệnh Nhân
+        // Logic ban request them moi DB
         document.getElementById('addPatientForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitPatientBtn');
@@ -346,14 +564,13 @@
                 
                 const data = await response.json();
                 if(data.success) {
-                    // Đóng Modal (Dùng hàm của Bootstrap)
                     const modalEl = document.getElementById('addPatientModal');
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     modal.hide();
                     
-                    // Xóa form và Tải lại danh sách
                     document.getElementById('addPatientForm').reset();
-                    fetchPatientsList();
+                    allPatients = []; 
+                    syncGlobalData();
                 } else {
                     throw new Error(data.error);
                 }
@@ -366,13 +583,13 @@
             }
         });
 
-        function logout() {
-            localStorage.clear();
-            if(realtimeInterval) clearInterval(realtimeInterval);
-            window.location.href = 'login.html';
-        }
+        // Run thu tuc lan dau tien init vao page
+        initCharts();
+        syncGlobalData(); 
+        setInterval(syncGlobalData, 3000); 
 
-        fetchPatientsList();
+        // Ham tra ve page sign in
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
     </script>
 </body>
 </html>
